@@ -66,3 +66,15 @@ function obtain_enriched_configurations(r::record)
     end
     return configurations
 end
+
+
+function obtain_enriched_configurations(
+        nz_dict::Dict{Int, Vector{CartesianIndex{2}}},
+        num_fils::Int, 
+        fil_len::Int
+        )
+    r = record(nz_dict, num_fils, fil_len)
+    count!(r)
+    check_and_fill_placeholder!(r)
+    return obtain_enriched_configurations(r)
+end
