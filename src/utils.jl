@@ -1,20 +1,3 @@
-"""
-input: 
-    num_fils: the number of filters in the configuration
-    max_nz_len: the maximum number of the non-zero code components
-        (this needs to be counted first as to reduce the number of combinations)
-
-"""
-function generate_combinations_and_cms(
-        num_fils::Integer, 
-        max_nz_len::Integer;
-        delta=default_cms_delta, epsilon=default_cms_epsilon)
-    combs = int_type.(
-        reduce(hcat, combinations(1:max_nz_len, num_fils) |> collect)) |> cu 
-    c = gpu_cms(config_size(num_fils), delta, epsilon)
-    # b/c (f₁, d₁₂, f₂, d₂₃, f₃); definition of configuration
-    return combs, c
-end
 
 """
     combs: the combinations of the non-zero code components
