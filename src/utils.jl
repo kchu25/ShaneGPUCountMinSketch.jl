@@ -43,12 +43,13 @@ function check_and_fill_placeholder!(r::record;
             min_count)
 end
 
-function obtain_enriched_configurations(r::record)
+function _obtain_enriched_configurations_(r::record)
     #= get the configurations; (i.e. where 
         (combination, seq) in the placeholder 
         from the sketch exceed min_count) =#
-    where_exceeds = findall(r.placeholder_count) # vector of CartesianIndices{2}
-    # note: findall is slow when compiling
+    @time where_exceeds = findall(r.placeholder_count)
+    # note: findall is slow and compiles each time
+    # has to be done "in the loop" to avoid re-compilation TODO fix this
     if isempty(where_exceeds)
         return Set{Vector{Int}}()
     end
@@ -93,6 +94,6 @@ function obtain_enriched_configurations(
     r = record(nz_dict, num_fils, fil_len)
     count!(r)
     check_and_fill_placeholder!(r; min_count=min_count)
-    configs = obtain_enriched_configurations(r)
+    configs =_obtain_enriched_configurations_(r)
     return configs
 end
