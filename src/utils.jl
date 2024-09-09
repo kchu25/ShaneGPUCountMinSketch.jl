@@ -27,7 +27,7 @@ end
 """
 obtain placeholder_count
 """
-function check_and_fill_placeholder!(r::record,
+function check_and_fill_placeholder!(r::record;
         min_count=default_min_count)
     # get the placeholder_count
     @cuda threads=default_num_threads2D blocks=ceil.(
@@ -44,36 +44,55 @@ function check_and_fill_placeholder!(r::record,
 end
 
 function obtain_enriched_configurations(r::record)
-    # make the set
-    configurations = Set{Vector{Int}}()
-    configuration = Vector{Int}(undef, (config_size(r.num_fils),)) # TODO use static array
-
-    # now add the enriched configurations
-    # i.e. all the configurations that have the counts larger than min_count (see const.jl)
-    placeholder_count_bitarr = r.placeholder_count |> Array
-    for c in findall(placeholder_count_bitarr .== true)
-        i, n = c[1], c[2]
-        comb_here = @view r.combs_cpu[:, i]
-        # for loop to get the configuration
-        for k in axes(comb_here, 1)
-            configuration[2*(k-1)+1] = r.A_cpu[comb_here[k], 2, n]
-            if k < size(comb_here, 1)
-                configuration[2*k] = 
-                    r.A_cpu[comb_here[k+1], 1, n] - r.A_cpu[comb_here[k], 1, n] - r.fil_len
-            end
-        end
-        push!(configurations, copy(configuration))
+    #= get the configurations; (i.e. where 
+        (combination, seq) in the placeholder 
+        from the sketch exceed min_count) =#
+    where_exceeds = findall(r.placeholder_count) # vector of CartesianIndices{2}
+    # note: findall is slow when compiling
+    if isempty(where_exceeds)
+        return Set{Vector{Int}}()
     end
-    return configurations
+
+    configs = CuMatrix{int_type}(undef, (length(where_exceeds), config_size(r.num_fils)));
+    @cuda threads=default_num_threads1D blocks=ceil(Int, length(where_exceeds)) obtain_configs!(
+        where_exceeds, r.combs_gpu, r.A_gpu, configs, r.fil_len)
+
+    return map(x->Tuple(x), eachrow(Array(configs))) |> Set
 end
+
+# function obtain_enriched_configurations2(r::record)
+#     # make the set
+#     configurations = Set{Vector{Int}}()
+#     configuration = Vector{Int}(undef, (config_size(r.num_fils),)) # TODO use static array
+
+#     # now add the enriched configurations
+#     # i.e. all the configurations that have the counts larger than min_count (see const.jl)
+#     placeholder_count_bitarr = r.placeholder_count |> Array
+#     for c in findall(placeholder_count_bitarr .== true)
+#         i, n = c[1], c[2]
+#         comb_here = @view r.combs_cpu[:, i]
+#         # for loop to get the configuration
+#         for k in axes(comb_here, 1)
+#             configuration[2*(k-1)+1] = r.A_cpu[comb_here[k], 2, n]
+#             if k < size(comb_here, 1)
+#                 configuration[2*k] = 
+#                     r.A_cpu[comb_here[k+1], 1, n] - r.A_cpu[comb_here[k], 1, n] - r.fil_len
+#             end
+#         end
+#         push!(configurations, copy(configuration))
+#     end
+#     return configurations
+# end
 
 function obtain_enriched_configurations(
         nz_dict::Dict{Int, Vector{CartesianIndex{2}}},
         num_fils::Int, 
-        fil_len::Int
+        fil_len::Int;
+        min_count=default_min_count
         )
     r = record(nz_dict, num_fils, fil_len)
     count!(r)
-    check_and_fill_placeholder!(r)
-    return obtain_enriched_configurations(r)
+    check_and_fill_placeholder!(r; min_count=min_count)
+    configs = obtain_enriched_configurations(r)
+    return configs
 end

@@ -80,3 +80,20 @@ function count_kernel_chk(combs, A, R, Sk, M, ncols, pfm_len, placeholder_count,
     return nothing
 end
 
+# obtain the configurations from the placeholder_count
+function obtain_configs!(CindsVec, combs_gpu, A_gpu, configs, fil_len)
+    i = (blockIdx().x - 1) * blockDim().x + threadIdx().x;
+    I = length(CindsVec)
+    K = size(combs_gpu, 1)
+    if i ≤ I
+        j, n = CindsVec[i][1], CindsVec[i][2] # j-th combination, n-th sequence
+        @inbounds for k = 1:K
+            configs[i, 2*(k-1)+1] = A_gpu[combs_gpu[k, j], 2, n]
+            if k < K
+                configs[i, 2*k] = 
+                    A_gpu[combs_gpu[k+1, j], 1, n] - A_gpu[combs_gpu[k, j], 1, n] - fil_len
+            end
+        end
+    end
+    return nothing
+end
