@@ -1,6 +1,6 @@
 
 """
-    combs: the combinations of the non-zero code components
+    combs_gpu: the combinations of the non-zero code components
     c: the CountMinSketch object
     A: Array that contains the code
         A[:,1,n] contains the placements
@@ -50,7 +50,7 @@ function obtain_enriched_configurations(r::record)
 
     # now add the enriched configurations
     # i.e. all the configurations that have the counts larger than min_count (see const.jl)
-    placeholder_count_bitarr = r.placeholder_count |> BitArray
+    placeholder_count_bitarr = r.placeholder_count |> Array
     for c in findall(placeholder_count_bitarr .== true)
         i, n = c[1], c[2]
         comb_here = @view r.combs_cpu[:, i]
@@ -66,7 +66,6 @@ function obtain_enriched_configurations(r::record)
     end
     return configurations
 end
-
 
 function obtain_enriched_configurations(
         nz_dict::Dict{Int, Vector{CartesianIndex{2}}},
