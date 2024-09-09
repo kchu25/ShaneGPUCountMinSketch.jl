@@ -9,48 +9,60 @@
 
 modify the CountMinSketch object c in place
 
-note: A could be a parition
+note: A could be a parition (TODO)
 """
-function count!(combs, c::gpu_cms, A::CuArray{int_type,3}, fil_len::Integer)
-    size_tuple = (size(combs, 2), size(Sk, 1), size(A, 3))
-    cms_M = size(c.Sk) |> prod
-    cms_cols = size(c.Sk,2)
+function count!(r::record)
     # execute the counting on the sketch
     @cuda threads=default_num_threads3D blocks=ceil.(
-            Int, size_tuple) count_kernel(
-                combs, A, c.R, c.Sk, cms_M, cms_cols, fil_len);
+            Int, get_sketch_size_tuple3d(r)) count_kernel(
+                r.combs, 
+                r.A_gpu, 
+                r.cms.R, 
+                r.cms.Sk, 
+                get_sketch_num_counters(r), 
+                get_sketch_num_cols(r), 
+                r.fil_len);
 end
 
 """
 obtain placeholder_count
 """
-function check!(configurations::Set{Vector{Int}}, 
-        combs, combs_cpu, A, A_cpu, c::gpu_cms, num_fils, fil_len; 
+function check_and_fill_placeholder!(r::record,
         min_count=default_min_count)
-    cms_M = size(c.Sk) |> prod
-    cms_cols = size(c.Sk,2)
-    size_tuple = (size(combs, 2), size(A, 3))
-    placeholder_count = CUDA.fill(false, size_tuple); 
     # get the placeholder_count
     @cuda threads=default_num_threads2D blocks=ceil.(
-        Int, size_tuple) count_kernel_chk(
-            combs, A, c.R, c.Sk, cms_M, cms_cols, fil_len, placeholder_count,
+        Int, get_sketch_size_tuple2d(r)) count_kernel_chk(
+            r.combs, 
+            r.A_gpu, 
+            r.cms.R, 
+            r.cms.Sk, 
+            get_sketch_num_counters(r), 
+            get_sketch_num_cols(r), 
+            r.fil_len, 
+            r.placeholder_count,
             min_count)
+end
+
+function obtain_enriched_configurations(r::record)
+    # make the set
+    configurations = Set{Vector{Int}}()
+    configuration = Vector{Int}(undef, (config_size(r.num_fils),)) # TODO use static array
 
     # now add the enriched configurations
-    placeholder_count = placeholder_count |> BitArray
-    configuration = Vector{Int}(undef, (config_size(num_fils),)) # TODO use static array
-    for c in findall(placeholder_count .== true)
+    # i.e. all the configurations that have the counts larger than min_count (see const.jl)
+    placeholder_count_bitarr = r.placeholder_count |> BitArray
+    for c in findall(placeholder_count_bitarr .== true)
         i, n = c[1], c[2]
-        comb_here = @view combs_cpu[:, i]
+        comb_here = @view r.combs_cpu[:, i]
         # for loop to get the configuration
         for k in axes(comb_here, 1)
-            configuration[2*(k-1)+1] = A_cpu[comb_here[k], 2, n]
+            configuration[2*(k-1)+1] = r.A_cpu[comb_here[k], 2, n]
             if k < size(comb_here, 1)
                 configuration[2*k] = 
-                    A_cpu[comb_here[k+1], 1, n] - A_cpu[comb_here[k], 1, n] - fil_len
+                    r.A_cpu[comb_here[k+1], 1, n] - r.A_cpu[comb_here[k], 1, n] - r.fil_len
             end
         end
         push!(configurations, copy(configuration))
     end
+    return configurations
 end

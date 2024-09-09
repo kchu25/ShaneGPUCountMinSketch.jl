@@ -33,13 +33,15 @@ function generate_combinations(
         num_fils::Integer, 
         max_nz_len::Integer;)
     combs = int_type.(
-        reduce(hcat, combinations(1:max_nz_len, num_fils) |> collect)) |> cu 
+        reduce(hcat, combinations(1:max_nz_len, num_fils) |> collect)) 
 
-    return combs, c
+    return combs, combs |> cu
 end
 
 function make_gpu_cms(num_fils; 
         delta=default_cms_delta, epsilon=default_cms_epsilon)
+    # config_size: return the dimension of the configuration 
+    # according to the number of filters
     c = gpu_cms(config_size(num_fils), delta, epsilon)
     return c
 end
@@ -103,18 +105,28 @@ TODO: Make A and placeholder a vector later on
 mutable struct record
     A_cpu::Array{int_type, 3}
     A_gpu::CuArray{int_type, 3}
-    combs::CuArray{int_type, 2}
+    combs_cpu::Array{int_type, 2}
+    combs_gpu::CuArray{int_type, 2}
     cms::gpu_cms # count min sketch
     placeholder_count::CuArray{Bool, 2}
+    num_fils::Int # the number of filters in the configuration
+    fil_len::Int # the length of the filter in the model
     function record(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, 
-                    num_fils; # the number of filters in the configuration
+                    num_fils, # the number of filters in the configuration
+                    fil_len::Int; 
                     delta=default_cms_delta, epsilon=default_cms_epsilon)
         # maximum number of non-zero code components in each seq
         max_nz_len = get_max_nz_len(nz_dict)
         A_cpu, A_gpu = get_A_and_combs!(nz_dict, max_nz_len)
-        combs = generate_combinations_and_cms(num_fils, max_nz_len)
+        combs, combs_gpu = generate_combinations_and_cms(num_fils, max_nz_len)
         cms = make_gpu_cms(num_fils; delta=delta, epsilon=epsilon)
         placeholder_count = CUDA.fill(false, (size(combs, 2), size(A_cpu, 3))) |> cu
-        new(A_cpu, A_gpu, combs, cms, placeholder_count)
+        new(A_cpu, A_gpu, combs, combs_gpu, cms, placeholder_count, num_fils, fil_len)
     end
 end
+
+get_sketch_num_counters(r::record) = size(r.cms.Sk) |> prod
+get_sketch_num_cols(r::record) = size(r.cms.Sk, 2)
+get_sketch_size_tuple3d(r::record) = 
+    (size(r.combs, 2), size(r.cms.Sk, 1), size(r.A_cpu, 3))
+get_sketch_size_tuple2d(r::record) = (size(r.combs, 2), size(r.A_cpu, 3))
