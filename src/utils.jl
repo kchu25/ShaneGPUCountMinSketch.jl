@@ -15,7 +15,7 @@ function count!(r::record)
     # execute the counting on the sketch
     @cuda threads=default_num_threads3D blocks=ceil.(
             Int, get_sketch_size_tuple3d(r)) count_kernel(
-                r.combs, 
+                r.combs_gpu, 
                 r.A_gpu, 
                 r.cms.R, 
                 r.cms.Sk, 
@@ -32,7 +32,7 @@ function check_and_fill_placeholder!(r::record,
     # get the placeholder_count
     @cuda threads=default_num_threads2D blocks=ceil.(
         Int, get_sketch_size_tuple2d(r)) count_kernel_chk(
-            r.combs, 
+            r.combs_gpu, 
             r.A_gpu, 
             r.cms.R, 
             r.cms.Sk, 

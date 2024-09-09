@@ -34,7 +34,6 @@ function generate_combinations(
         max_nz_len::Integer;)
     combs = int_type.(
         reduce(hcat, combinations(1:max_nz_len, num_fils) |> collect)) 
-
     return combs, combs |> cu
 end
 
@@ -71,7 +70,7 @@ function get_A_and_combs!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, max_nz_
     # filter out seq with empty values
     filter_empty_seq!(nz_dict)
     # get the number of seqs
-    klen = keys(code_profile.nz_components_train) |> length 
+    klen = keys(nz_dict) |> length 
 
     ##### construct A #####
     A = zeros(int_type, (max_nz_len,2,klen))
@@ -118,7 +117,7 @@ mutable struct record
         # maximum number of non-zero code components in each seq
         max_nz_len = get_max_nz_len(nz_dict)
         A_cpu, A_gpu = get_A_and_combs!(nz_dict, max_nz_len)
-        combs, combs_gpu = generate_combinations_and_cms(num_fils, max_nz_len)
+        combs, combs_gpu = generate_combinations(num_fils, max_nz_len)
         cms = make_gpu_cms(num_fils; delta=delta, epsilon=epsilon)
         placeholder_count = CUDA.fill(false, (size(combs, 2), size(A_cpu, 3))) |> cu
         new(A_cpu, A_gpu, combs, combs_gpu, cms, placeholder_count, num_fils, fil_len)
