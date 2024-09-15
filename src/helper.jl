@@ -1,4 +1,3 @@
-
 # number of rows in the sketch
 cms_rows(cms_delta) = ceil(log(1 / cms_delta)) |> Int
 # number of counters in the sketch

@@ -100,7 +100,6 @@ Take non-zero code components
 TODO: Make A and placeholder a vector later on
     in case the memory usage is a concern
 """
-
 mutable struct record
     A_cpu::Array{int_type, 3}
     A_gpu::CuArray{int_type, 3}

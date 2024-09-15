@@ -1,6 +1,5 @@
 module ShaneGPUCountMinSketch
 
-# Write your package code here.
 using CUDA
 using Combinatorics
 

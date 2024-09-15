@@ -1,4 +1,3 @@
-
 function count_kernel(combs, A, R, Sk, M, ncols, pfm_len)
     i = (blockIdx().x - 1) * blockDim().x + threadIdx().x;
     j = (blockIdx().y - 1) * blockDim().y + threadIdx().y;
