@@ -7,7 +7,7 @@
 
 # Usage
 The primary use of this package is to count motif instances
-as recorded from the sparse code. This package uses GPU (CUDA) to speed up the enumerations on a probabilistic data structure called Count-Min-Sketch.
+as recorded from the sparse code. This package uses GPU (CUDA) to speed up the enumerations on a probabilistic data structure called [Count-Min-Sketch](https://kchu25.github.io/blog/hh/).
 
 We will define a *configuration* $c_K$ as a $2K+1$ tuple $(K = 1,2,3,...)$. Specifically,
 * the component $c[2k+1]$, where $1\leq k \leq K$, documents the filter index.
@@ -33,4 +33,4 @@ And the other arguments:
 * *min_count*: the minimum number of counts for a configuration to be considered valid.
 
 # Note
-Since the `obtain_enriched_configurations` utilize Count-Min-Sketch, a probabilistic datastructure, the result it obtained may be slightly different. We note that the results are almost identical in practice.
+Since the `obtain_enriched_configurations` utilize [Count-Min-Sketch](https://kchu25.github.io/blog/hh/), a probabilistic datastructure, the result it obtained may be slightly different. We note that the results are almost identical in practice.
