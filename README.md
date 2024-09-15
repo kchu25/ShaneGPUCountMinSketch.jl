@@ -25,7 +25,7 @@ obtain_enriched_configurations(
 ```
 
 where `nz_dict` is a dict where 
-* its keys are Integers (type `Int`) that records the *sequence index*
+* its keys are Integers (type `Int`) that records the *sequence index*, and its values are two-dimensional CartesianIndices $q$, where $q[1]$ is the position, and $q[2]$ is the *filter index*. 
 * *num_fils*: the number of filters that the user want to recorded in a *configuration* (i.e. the variable $K$ in the definition of configuration).
 * *fil_len*: the filter length
 * *min_count*: the minimum number of counts for a configuration to be considered valid.
