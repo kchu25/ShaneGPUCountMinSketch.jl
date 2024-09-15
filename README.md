@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/kchu25/ShaneGPUCountMinSketch.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/kchu25/ShaneGPUCountMinSketch.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/kchu25/ShaneGPUCountMinSketch.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/kchu25/ShaneGPUCountMinSketch.jl)
 
-
+# Usage
 The primary use of this package is to count motif instances
 as recorded from the sparse code. This package uses GPU (CUDA) to speed up the enumerations on a probabilistic data structure called Count-Min-Sketch.
 
@@ -31,3 +31,6 @@ And the other arguments:
 * *num_fils*: the number of filters that the user want to recorded in a *configuration* (i.e. the variable $K$ in the definition of configuration).
 * *fil_len*: the filter length
 * *min_count*: the minimum number of counts for a configuration to be considered valid.
+
+# Note
+Since the `obtain_enriched_configurations` utilize Count-Min-Sketch, a probabilistic datastructure, the result it obtained may be slightly different. We note that the results are almost identical in practice.
