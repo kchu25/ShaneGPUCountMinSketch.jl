@@ -9,11 +9,11 @@
 The primary use of this package is to count motif instances
 as recorded from the sparse code. This package uses GPU (CUDA) to speed up the enumerations on a probabilistic data structure called Count-Min-Sketch.
 
-We will define a *configuration* $c_K$ as a $2K+1$ tuple $(K = 1,2,3,...)$. Specifically:
+We will define a *configuration* $c_K$ as a $2K+1$ tuple $(K = 1,2,3,...)$. Specifically,
 * the component $c[2k+1]$, where $1\leq k \leq K$, documents the filter index.
 * the component $c[2k]$, where $1\leq k \leq K-1$, documents the distance (e.g. number of nucleotide in between) the filters $c[2(k-1)+1]$ and $c[2k+1]$.
 
-The subroutine provided by this package is:
+The main subroutine provided by this package is:
 
 ```
 obtain_enriched_configurations(
