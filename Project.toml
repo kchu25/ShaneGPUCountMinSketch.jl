@@ -1,7 +1,7 @@
 name = "ShaneGPUCountMinSketch"
 uuid = "910541cc-34bb-47a1-b3fd-5231dc2195e0"
 authors = ["Shane Kuei-Hsien Chu (skchu@wustl.edu)"]
-version = "1.0.0-DEV"
+version = "1.0.0"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
