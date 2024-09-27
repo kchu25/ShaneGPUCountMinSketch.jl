@@ -1,8 +1,8 @@
 # default parameters
 const int_type = Int32
-const prime_number = int_type(10000019)
-const default_cms_delta = 0.01
-const default_cms_epsilon = 0.0001
+const prime_number = int_type(50000101)
+const default_cms_delta = 0.0001
+const default_cms_epsilon = 0.00005
 const default_min_count = 25
 
 # CUDA setup

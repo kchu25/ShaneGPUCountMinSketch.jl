@@ -52,7 +52,7 @@ get_A!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}})
                   seq => [(pos, fil)]
     and convert it to an Array of records
 
-In another word: construct the Array A: Array that contains the code
+In another word: construct an Array A: Array that contains the code
     A[:,1,n] contains the placements
     A[:,2,n] contains the corresponding filter indices
 
@@ -83,7 +83,6 @@ function get_A_and_combs!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, max_nz_
     end
     return A, cu(A)
 end
-
 
 """
 Take non-zero code components

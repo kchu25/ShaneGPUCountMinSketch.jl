@@ -64,9 +64,11 @@ function obtain_enriched_configurations(
         nz_dict::Dict{Int, Vector{CartesianIndex{2}}},
         num_fils::Int, 
         fil_len::Int;
-        min_count=default_min_count
+        min_count=default_min_count;
+        delta = default_cms_delta,
+        epsilon = default_cms_epsilon
         )
-    r = record(nz_dict, num_fils, fil_len)
+    r = record(nz_dict, num_fils, fil_len; delta=delta, epsilon=epsilon)
     count!(r)
     check_and_fill_placeholder!(r; min_count=min_count)
     configs =_obtain_enriched_configurations_(r)
