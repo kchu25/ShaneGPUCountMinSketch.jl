@@ -1,3 +1,6 @@
+
+
+
 """
 Take non-zero code components
     i.e. Dict{Int => Vector{CartesianIndex{2}}}
@@ -25,7 +28,9 @@ mutable struct record
     function record(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, 
                     num_fils, # the number of filters in the configuration
                     fil_len::Int; 
-                    delta=default_cms_delta, epsilon=default_cms_epsilon)
+                    delta=default_cms_delta, 
+                    epsilon=default_cms_epsilon,
+                    batch_size=batch_size)
         # maximum number of non-zero code components in each seq
         max_nz_len = get_max_nz_len(nz_dict)
         A_cpu, A_gpu = get_A_and_combs!(nz_dict, max_nz_len)

@@ -70,10 +70,10 @@ function get_A_and_combs!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, max_nz_
     # filter out seq with empty values
     filter_empty_seq!(nz_dict)
     # get the number of seqs
-    klen = keys(nz_dict) |> length 
+    num_seqs = keys(nz_dict) |> length 
 
     ##### construct A #####
-    A = zeros(int_type, (max_nz_len,2,klen))
+    A = zeros(int_type, (max_nz_len,2,num_seqs))
     for (ind1, seq) in enumerate(keys(nz_dict))
         for (ind2, c) in enumerate(nz_dict[seq])
             pos, fil = c[1], c[2]
