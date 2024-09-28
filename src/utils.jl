@@ -22,6 +22,7 @@ function count!(r::record)
                     get_sketch_num_counters(r), 
                     get_sketch_num_cols(r), 
                     r.fil_len);
+        @info "how many: $(sum(r.cms.Sk))"
     end
 end
 
@@ -51,13 +52,20 @@ function _obtain_enriched_configurations_(r::record)
         (combination, seq) in the placeholder 
         from the sketch exceed min_count) =#
 
-    enriched_configs = Vector{Set{Vector{Int}}}(undef, r.num_batches)
+    enriched_configs = Vector{Set{Tuple}}(undef, r.num_batches)
     for i = 1:r.num_batches
-        where_exceeds = findall(r.placeholder_count[i])
+        @info "obtaining enriched configurations for batch $i"
+        where_exceeds = findall(r.placeholder_count[i] .== true)
         configs = CuMatrix{int_type}(undef, (length(where_exceeds), config_size(r.num_fils)));
-        @cuda threads=default_num_threads1D blocks=ceil(Int, length(where_exceeds)) obtain_configs!(
-            where_exceeds, r.combs_gpu, r.A_gpu, configs, r.fil_len)
-        enriched_configs[i] = map(x->Tuple(x), eachrow(Array(configs))) |> Set
+
+        @info "grid size: $(length(where_exceeds))"
+        if length(where_exceeds) == 0
+            enriched_configs[i] = Set{Vector{Int}}()
+        else
+            @cuda threads=default_num_threads1D blocks=ceil(Int, length(where_exceeds)) obtain_configs!(
+                where_exceeds, r.combs_gpu, r.A_gpu[i], configs, r.fil_len)
+            enriched_configs[i] = map(x->Tuple(x), eachrow(Array(configs))) |> Set
+        end
     end
 
     return reduce(union, enriched_configs)
