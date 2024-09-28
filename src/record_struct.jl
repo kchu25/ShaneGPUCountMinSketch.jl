@@ -17,12 +17,12 @@ TODO: Make A and placeholder a vector later on
     in case the memory usage is a concern
 """
 mutable struct record
-    A_cpu::Array{int_type, 3}
-    A_gpu::CuArray{int_type, 3}
+    A_cpu::Vector{Array{int_type, 3}}
+    A_gpu::Vector{CuArray{int_type, 3}}
     combs_cpu::Array{int_type, 2}
     combs_gpu::CuArray{int_type, 2}
     cms::gpu_cms # count min sketch
-    placeholder_count::CuArray{Bool, 2}
+    placeholder_count::Vector{CuArray{Bool, 2}}
     num_fils::Int # the number of filters in the configuration
     fil_len::Int # the length of the filter in the model
     function record(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, 
@@ -33,10 +33,11 @@ mutable struct record
                     batch_size=batch_size)
         # maximum number of non-zero code components in each seq
         max_nz_len = get_max_nz_len(nz_dict)
-        A_cpu, A_gpu = get_A_and_combs!(nz_dict, max_nz_len)
+        A_cpu, A_gpu, num_batches = get_A_and_combs!(nz_dict, max_nz_len)
         combs, combs_gpu = generate_combinations(num_fils, max_nz_len)
         cms = make_gpu_cms(num_fils; delta=delta, epsilon=epsilon)
-        placeholder_count = CUDA.fill(false, (size(combs, 2), size(A_cpu, 3))) |> cu
+        placeholder_count = 
+            [CUDA.fill(false, (size(combs, 2), size(A_cpu[i], 3))) for i = 1:num_batches]
         new(A_cpu, A_gpu, combs, combs_gpu, cms, placeholder_count, num_fils, fil_len)
     end
 end
