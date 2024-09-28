@@ -1,6 +1,3 @@
-
-
-
 """
 Take non-zero code components
     i.e. Dict{Int => Vector{CartesianIndex{2}}}
@@ -13,12 +10,11 @@ Take non-zero code components
     num_fils: the number of filters in the configuration
     # e.g. (f₁, d₁₂, f₂, d₂₃, f₃) has 3 filters
 
-TODO: Make A and placeholder a vector later on
-    in case the memory usage is a concern
 """
 mutable struct record
     A_cpu::Vector{Array{int_type, 3}}
     A_gpu::Vector{CuArray{int_type, 3}}
+    num_batches::Int
     combs_cpu::Array{int_type, 2}
     combs_gpu::CuArray{int_type, 2}
     cms::gpu_cms # count min sketch
@@ -38,7 +34,7 @@ mutable struct record
         cms = make_gpu_cms(num_fils; delta=delta, epsilon=epsilon)
         placeholder_count = 
             [CUDA.fill(false, (size(combs, 2), size(A_cpu[i], 3))) for i = 1:num_batches]
-        new(A_cpu, A_gpu, combs, combs_gpu, cms, placeholder_count, num_fils, fil_len)
+        new(A_cpu, A_gpu, num_batches, combs, combs_gpu, cms, placeholder_count, num_fils, fil_len)
     end
 end
 
