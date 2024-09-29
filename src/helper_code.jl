@@ -65,29 +65,35 @@ Note: can partition nz_dict
 returns the cpu and gpu version of A
     i.e. returns A_cpu, A_gpu
 """
-function get_A_and_combs!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, max_nz_len)
+function get_A_and_combs!(nz_dict::Dict{Int, Vector{CartesianIndex{2}}}, max_nz_len; batch_size=batch_size)
     ##### preprocessing #####
     # filter out seq with empty values
+
     filter_empty_seq!(nz_dict)
     # get the number of seqs
     num_seqs = keys(nz_dict) |> length 
-
+    # @info "num_seqs: $num_seqs"
     num_batches_m1 = num_seqs ÷ batch_size # number of batches minus 1
     last_batch_size = num_seqs % batch_size
     num_batches = num_batches_m1 + 1
+    # @info "num_batches: $num_batches"
     ##### construct A #####
     A = [zeros(int_type, (max_nz_len,2,batch_size)) for _ in 1:num_batches_m1]
     push!(A, zeros(int_type, (max_nz_len,2,last_batch_size)))
 
+    # @info "sizes: $(size.(A,3))"
     for (ind1, seq) in enumerate(keys(nz_dict))
-        batch_ind = ind1 ÷ batch_size + 1
+        batch_ind = (ind1-1) ÷ batch_size + 1
         placement_ind = ind1 % batch_size
+        # @info "ind1 $ind1"
+        # placement_ind == 1 && (@info "seq: $ind1 batch: $batch_ind")
+        placement_ind = placement_ind == 0 ? batch_size : placement_ind
         for (ind2, c) in enumerate(nz_dict[seq])
             pos, fil = c[1], c[2]
             A[batch_ind][ind2, 1, placement_ind] = pos
             A[batch_ind][ind2, 2, placement_ind] = fil
         end
     end
-    @info "A1: $(A[1][:,:,1])"
+    # @info "A1: $(A[1][:,:,1])"
     return A, cu.(A), num_batches
 end

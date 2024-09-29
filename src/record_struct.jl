@@ -29,7 +29,7 @@ mutable struct record
                     batch_size=batch_size)
         # maximum number of non-zero code components in each seq
         max_nz_len = get_max_nz_len(nz_dict)
-        A_cpu, A_gpu, num_batches = get_A_and_combs!(nz_dict, max_nz_len)
+        A_cpu, A_gpu, num_batches = get_A_and_combs!(nz_dict, max_nz_len; batch_size=batch_size)
         combs, combs_gpu = generate_combinations(num_fils, max_nz_len)
         cms = make_gpu_cms(num_fils; delta=delta, epsilon=epsilon)
         placeholder_count = 
@@ -40,6 +40,6 @@ end
 
 get_sketch_num_counters(r::record) = size(r.cms.Sk) |> prod
 get_sketch_num_cols(r::record) = size(r.cms.Sk, 2)
-get_sketch_size_tuple3d(r::record) = 
-    (size(r.combs_cpu, 2), size(r.cms.Sk, 1), size(r.A_cpu, 3))
-get_sketch_size_tuple2d(r::record) = (size(r.combs_cpu, 2), size(r.A_cpu, 3))
+get_sketch_size_tuple3d(r::record, i::Int) = 
+    (size(r.combs_cpu, 2), size(r.cms.Sk, 1), size(r.A_cpu[i], 3))
+get_sketch_size_tuple2d(r::record, i::Integer) = (size(r.combs_cpu, 2), size(r.A_cpu[i], 3))

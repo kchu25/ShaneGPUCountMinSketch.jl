@@ -36,7 +36,7 @@ function count_kernel(combs, A, R, Sk, M, ncols, pfm_len)
     return nothing
 end
 
-function count_kernel_chk(combs, A, R, Sk, M, ncols, pfm_len, placeholder_count, default_max_freq_member)
+function count_kernel_chk(combs, A, R, Sk, M, ncols, pfm_len, placeholder_count, min_count)
     i = (blockIdx().x - 1) * blockDim().x + threadIdx().x;
     n = (blockIdx().y - 1) * blockDim().y + threadIdx().y;
 
@@ -45,6 +45,7 @@ function count_kernel_chk(combs, A, R, Sk, M, ncols, pfm_len, placeholder_count,
     N = size(A, 3)
     if i ≤ I && n ≤ N
         @inbounds for k in axes(combs, 1)
+            # this is done for all k
             if A[combs[k,i], 1, n] == 0
                 return nothing
             end
@@ -69,7 +70,7 @@ function count_kernel_chk(combs, A, R, Sk, M, ncols, pfm_len, placeholder_count,
             # get the column index; +1 to adjust to 1-base indexing
             num_here = (num_here % M) % ncols + 1
             if  1 ≤ num_here ≤ size(Sk, 2)
-                if Sk[j, num_here] < default_max_freq_member
+                if Sk[j, num_here] < min_count
                     exceed = false
                 end
             end
