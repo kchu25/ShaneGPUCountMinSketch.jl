@@ -82,12 +82,27 @@ function obtain_enriched_configurations(
         fil_len::Int;
         min_count=default_min_count,
         delta = default_cms_delta,
-        epsilon = default_cms_epsilon
+        epsilon = default_cms_epsilon,
+        CONFIG_MAX = 1000 # experimental
         )
     r = record(nz_dict, num_fils, fil_len; delta=delta, epsilon=epsilon)
     count!(r)
     check_and_fill_placeholder!(r; min_count=min_count)
     configs =_obtain_enriched_configurations_(r)
-    # @info "configs: $configs"
+
+    # experimental
+    while length(configs) > CONFIG_MAX
+        @info "number of configurations: $(length(configs)) exceed $CONFIG_MAX; reinitialize the placeholder_count"
+        # reinitialize the placeholder_count
+        placeholder_count = 
+            [CUDA.fill(false, (size(r.combs_cpu, 2), size(r.A_cpu[i], 3))) for i = 1:r.num_batches];
+        r.placeholder_count = placeholder_count;
+        min_count += 5
+        @info "count-threshold increased to: $min_count"
+        check_and_fill_placeholder!(r; min_count=min_count)
+        configs =_obtain_enriched_configurations_(r)
+        @info "number of configurations: $(length(configs))"
+    end
+
     return configs
 end
