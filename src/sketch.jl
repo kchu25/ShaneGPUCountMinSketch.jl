@@ -1,4 +1,7 @@
 """
+R stores the random number for computing the hash 
+Sk stores the sketch 
+
 d: the dimension of the configuration
     e.g. for a configuration of 3 elements, d = 3
     e.g. (f₁, d₁₂, f₂) config of length 3
